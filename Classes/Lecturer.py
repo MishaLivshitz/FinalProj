@@ -7,5 +7,3 @@ class Lecturer:
     def __call__(self):
         print(self.number + ':' + self.name)
 
-    def __str__(self):
-        print(self.number + ':' + self.name)
