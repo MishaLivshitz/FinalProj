@@ -24,9 +24,9 @@ response = urllib.request.urlopen(request)
 check = Institute.Institute('Bruade', '23', {Lecturer.Lecturer(23, 'moshe'), Lecturer.Lecturer(25, 'David')})
 check1 = Institute.Institute('SCE', '27', {Lecturer.Lecturer(23, 'moshe')})
 check2 = Institute.Institute('TAU', '21', {Lecturer.Lecturer(23, 'moshe')})
-check3 = Institute.Institute('OBU', '8', {Lecturer.Lecturer(23, 'moshe')})
+check4 = Institute.Institute('OBU', '8', {Lecturer.Lecturer(23, 'moshe')})
 
-instituteList = {check, check1, check2, check3}
+instituteList = {check, check1, check2, check4}
 
 for i in instituteList:
     print(i.__call__());
