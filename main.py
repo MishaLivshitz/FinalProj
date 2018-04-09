@@ -55,13 +55,13 @@ def get_lecturer(id_number):
             index_end_id = curr_source.find("'>", index_start_id)
             lec_id = int(re.sub("[^0-9]", "", curr_source[index_start_id:index_end_id]))
             print(str(lec_id) + ":" + lec_name)
-            try:
-                data.execute(
-                    "INSERT INTO `finalproj`.`lecturers` (`lec_id`, `institute_id`, `lec_name`) VALUES ('" + str(
-                        lec_id) + "', '" + str(id_number) + "', '" + lec_name + "');")
-                cnx.commit()
-            except mysql.connector.Error as err:
-                print("problem")
+            #try:
+             #   data.execute(
+              #      "INSERT INTO `finalproj`.`lecturers` (`lec_id`, `institute_id`, `lec_name`) VALUES ('" + str(
+               #         lec_id) + "', '" + str(id_number) + "', '" + lec_name + "');")
+                #cnx.commit()
+            #except mysql.connector.Error as err:
+             #   print("problem")
 
             get_comments(lec_id)
 
@@ -89,20 +89,20 @@ def get_details(dargoo_source):
 
         names = names[name_index:]
         name = names[0:names.find("</option")]
-        try:
-            data.execute("INSERT INTO `finalproj`.`institutes` (`ins_id`, `ins_name`) VALUES ('" + str(
-                id_number) + "', '" + name + "');")
-            cnx.commit()
-        except mysql.connector.Error as err:
-            print("problem")
+       # try:
+        #    data.execute("INSERT INTO `finalproj`.`institutes` (`ins_id`, `ins_name`) VALUES ('" + str(
+         #       id_number) + "', '" + name + "');")
+          #  cnx.commit()
+        #except mysql.connector.Error as err:
+         #   print("problem")
         print(name)
         get_lecturer(id_number)
     return
 
 
-cnx = mysql.connector.connect(user='root', password='misha1991',
-                              host='127.0.0.1',
-                              database='finalproj')
-data = cnx.cursor()
+#cnx = mysql.connector.connect(user='root', password='misha1991',
+ #                             host='127.0.0.1',
+  #                            database='finalproj')
+#data = cnx.cursor()
 response = get_source_code("http://www.dargoo.co.il/")
 get_details(myencode(response.read()))
