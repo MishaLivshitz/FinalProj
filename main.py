@@ -34,7 +34,17 @@ def get_page(page, id_number):
     return lec_response
 
 def get_comments(lec_id):
-    comment_response = get_source_code("http://dargoo.co.il/displayRanking.asp?lecturerID="+str(lec_id))
+    url2 = "http://dargoo.co.il/displayRanking.asp?lecturerID=" + str(lec_id)
+    comment_response = myencode(get_source_code(url2).read())
+    number_of_comments_in_page = int((comment_response.count('<td style="white-space:normal;width:160px;padding:3px;">')))
+    index_start_comment = comment_response.find('<td style="white-space:normal;width:160px;padding:3px;">')
+    for i in range (number_of_comments_in_page):
+        index_end_comment = comment_response.find(">", index_start_comment+56)
+        cur_comment=comment_response[index_start_comment+76:index_end_comment-24].split("\\r\\n")
+        index_start_comment = comment_response.find('<td style="white-space:normal;width:160px;padding:3px;">',
+                                                    index_end_comment)
+        comment = "".join(cur_comment)
+        print("comment" + str(i) + ":  " + comment + "\n")
 
 
 def get_lecturer(id_number):
