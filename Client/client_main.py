@@ -11,13 +11,13 @@ sock.connect(server_address)
 
 try:
     # Send data
-    message = ['analyze_comments', 17376]
+    message = ['analyze_comments', 707]
     print(sys.stderr, 'sending "%s"' % message)
     message_to_send = pickle.dumps(message)
     sock.sendall(message_to_send)
 
     while True:
-        data = sock.recv(8192)
+        data = sock.recv(16384)
         data_dict = dict(pickle.loads(data, encoding="ASCII"))
         lec = Lecturer_Class.Lecturer(344, 'אבנון דן', data_dict)
         lec.analyze_comments()

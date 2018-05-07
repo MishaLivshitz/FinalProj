@@ -24,4 +24,4 @@ class c_manager:
         }
         if not switcher.get(argument[1]):
             return None
-        return switcher.get(argument[1], "Invalid month")(argument)
+        return switcher.get(argument[1])(argument)

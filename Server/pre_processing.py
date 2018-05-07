@@ -47,7 +47,7 @@ class Process:
             index_start_comment = comment_response.find('<td style="white-space:normal;width:160px;padding:3px;">',
                                                         index_end_comment)
             comment = "".join(cur_comment)
-            if comment != "":
+            if comment != "" and comment != "תגובתך ממתינה לאישור":
                 try:
                     self.__db_cnx.cursor().execute(
                         "INSERT INTO `finalproj`.`comments` (`lec_id`, `content`) VALUES ('" + str(
