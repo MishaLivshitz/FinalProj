@@ -23,15 +23,23 @@ class Lecturer:
              'f1': 'ס',
              'f2': 'ע', 'f3': 'ף', 'f4': 'פ', 'f5': 'ץ', 'f6': 'צ', 'f7': 'ק', 'f8': 'ר', 'f9': 'ש', 'fa': 'ת'});
 
-        soup = bs4.BeautifulSoup(text, 'html.parser').prettify()
+        # soup = bs4.BeautifulSoup(text, 'html.parser').prettify()
         for key, value in letters.items():
             text = str(text).replace('\\x' + key, value)
-        print(soup)
+        # print(soup)
         return text
 
     def __translate(self, trans):
         trans = self.__myencode(trans.read())
-        print(trans)
+        i = trans.find('לא נמצא תרגום מילוני')
+        if trans.find('לא נמצא תרגום מילוני') != -1:
+            return None
+        indx_start = trans.find(
+            '<div id="_ctl0_mainContent_googleTranslateControl_btResult" class="machineTranslateResult"')
+        indx_start = trans.find('>', indx_start)
+        indx_end = trans.find('</div>', indx_start)
+        words = trans[indx_start + 1:indx_end].split(' ')
+        return words
 
     def print_comments(self):
         i = 1
@@ -47,37 +55,48 @@ class Lecturer:
         pos_post = 0
         neg_post = 0
         neu_post = 0
-        bad_words = open("negative_words_he.txt", encoding="utf8").read().split("\n")
-        good_word = open("positive_words_he.txt", encoding="utf8").read().split("\n")
+        bad_words = open("english_bad.txt", encoding="utf8").read().splitlines()
+        good_word = open("english_good.txt", encoding="utf8").read().splitlines()
 
-        bad_words.remove("")
-        good_word.remove("")
+
         if len(self.comments) != 0:
             for key, value in self.comments.items():
 
-                com = value.split(" ")
-                for word in com:
-                    word = str(word.encode("utf-8"))
-                    word = word[2:word.__len__() - 1]
-                    word = word.replace("\\x", '%')
-                    trans = self.__get_source_code("http://www.morfix.co.il/" + word)
-                    self.__translate(trans)
-                    if word in bad_words:
-                        bad = bad + 1
-                    else:
-                        if word in good_word:
-                            good = good + 1
-
-                if (good / bad) >= 1.5:
-                    pos_post = pos_post + 1
-                    print("good-", com)
+                # com = value.split(" ")
+                value = value.replace('.', ' ')
+                value = value.replace(',', ' ')
+                value = value.replace('!', ' ')
+                value = value.replace('#34&', ' ')
+                value = value.replace("%", ' ')
+                encoded_com = str(value.encode("utf-8"))
+                encoded_com = encoded_com[2:encoded_com.__len__() - 1]
+                encoded_com = encoded_com.replace("\\x", '%')
+                encoded_com = encoded_com.replace(" ", '%20')
+                trans = self.__get_source_code("http://www.morfix.co.il/" + encoded_com)
+                list_en_words = self.__translate(trans)
+                if list_en_words:
+                    for word_in_list in list_en_words:
+                        if word_in_list in bad_words:
+                            bad = bad + 1
+                            print('bad - ', word_in_list)
+                        else:
+                            if word_in_list in good_word:
+                                good = good + 1
+                                print('good - ', word_in_list)
                 else:
-                    if good / bad <= 0.8:
+                    continue
+
+                if (good / bad) > 1.5:
+                    pos_post = pos_post + 1
+                    print("post_good-", value)
+                else:
+                    if good / bad < 1:
                         neg_post = neg_post + 1
-                        print("bad-", com)
+                        print("post_bad-", value)
+                    else:
+                        neu_post=neu_post+1
+                        print("post_neutral-", value)
                 bad = 1
                 good = 1
 
-            if neg_post != 0:
-                neu_post = 1
-                print("rate = ", (pos_post / (pos_post + neg_post)) * 5)
+            print("rate = ", ((pos_post+neu_post/2) / (pos_post+neg_post+neu_post)) * 5)
