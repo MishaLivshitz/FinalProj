@@ -2,6 +2,7 @@ import urllib.request
 import re
 import math
 import mysql.connector
+from datetime import datetime
 
 
 class Process:
@@ -25,14 +26,67 @@ class Process:
         return text
 
     def __get_source_code(self, url):
-        request = urllib.request.Request(url)
-        return urllib.request.urlopen(request)
+        try:
+            request = urllib.request.Request(url)
+            url = urllib.request.urlopen(request)
+        except urllib.error.HTTPError as err:
+            return None
+
+        return url
 
     def __get_page(self, page, id_number):
         url = "http://www.dargoo.co.il/searchResult.asp?page=" + str(page) + "&searchby=3&ddlCategories=" + str(
             id_number) + "&searchword=&button_search="
         lec_response = self.__myencode(self.__get_source_code(url).read())
         return lec_response
+
+    def __get_dates(self, comment_response, number_of_comments_in_page):
+
+        index_start_date = comment_response.find('<td align="center" width="60px">')
+        index_start_date = comment_response.find('>', index_start_date) + 1
+        index_end_date = comment_response.find('</td>', index_start_date)
+        dates = []
+        for i in range(number_of_comments_in_page):
+            if len(comment_response[index_start_date:index_end_date]) > 10:
+                datetime_object = datetime.strptime(comment_response[index_start_date:index_end_date],
+                                                    '%d/%m/%Y %H:%M:%S')
+            else:
+                datetime_object = datetime.strptime(comment_response[index_start_date:index_end_date],
+                                                    '%d/%m/%Y')
+            str = datetime_object.strftime("%Y-%m-%d %H:%M:%S")
+            dates.append(str)
+            index_start_date = comment_response.find('<td align="center" width="60px">', index_end_date)
+            index_start_date = comment_response.find('>', index_start_date) + 1
+            index_end_date = comment_response.find('</td>', index_start_date)
+
+        return dates
+
+    def __translate(self, value):
+
+        # value = value.replace('.', ' ')
+        # value = value.replace(',', ' ')
+        # value = value.replace('!', ' ')
+        value = value.replace("\\", ' ')
+        value = value.replace('#34&', ' ')
+        # value = value.replace("%", ' ')
+
+        value = re.sub('[!@#$%^&*()_+.,;"\']', '', value)
+        encoded_com = str(value.encode("utf-8"))
+        encoded_com = encoded_com[2:encoded_com.__len__() - 1]
+        encoded_com = encoded_com.replace("\\x", '%')
+        encoded_com = encoded_com.replace(" ", '%20')
+        trans = self.__get_source_code("http://www.morfix.co.il/" + encoded_com)
+        if trans is not None:
+            trans = self.__myencode(trans.read())
+            if trans.find('לא נמצא תרגום מילוני') != -1:
+                return None
+            indx_start = trans.find(
+                '<div id="_ctl0_mainContent_googleTranslateControl_btResult" class="machineTranslateResult"')
+            indx_start = trans.find('>', indx_start)
+            indx_end = trans.find('</div>', indx_start)
+            trans_com = trans[indx_start + 1:indx_end]
+            return trans_com
+        return ''
 
     def __get_comments(self, lec_id):
         comment_list = []
@@ -41,21 +95,36 @@ class Process:
         number_of_comments_in_page = int(
             (comment_response.count('<td style="white-space:normal;width:160px;padding:3px;">')))
         index_start_comment = comment_response.find('<td style="white-space:normal;width:160px;padding:3px;">')
+
+        index_start_comment = comment_response.find(">", index_start_comment) + 1
+
+        dates = self.__get_dates(comment_response, number_of_comments_in_page)
+
         for i in range(number_of_comments_in_page):
-            index_end_comment = comment_response.find(">", index_start_comment + 56)
-            cur_comment = comment_response[index_start_comment + 76:index_end_comment - 24].split("\\r\\n")
+            index_end_comment = comment_response.find("</td>", index_start_comment)
+            cur_comment = comment_response[index_start_comment:index_end_comment].split("\\r\\n")
             index_start_comment = comment_response.find('<td style="white-space:normal;width:160px;padding:3px;">',
                                                         index_end_comment)
+            index_start_comment = comment_response.find(">",index_start_comment) + 1
             comment = "".join(cur_comment)
+            comment = comment.replace('\\t', '')
+            comment = comment.strip()
+            comment = comment.lstrip()
+            print(comment)
             if comment != "" and comment != "תגובתך ממתינה לאישור":
-                try:
-                    self.__db_cnx.cursor().execute(
-                        "INSERT INTO `finalproj`.`comments` (`lec_id`, `content`) VALUES ('" + str(
-                            lec_id) + "', '" + comment + "');")
-                    self.__db_cnx.commit()
-                except mysql.connector.Error as err:
-                    print("problem - ", err)
-            # print("comment" + str(i) + ":  " + comment + "\n")
+                text = self.__translate(comment)
+                if text != '':
+                    try:
+                        self.__db_cnx.cursor().execute(
+                            "INSERT INTO `finalproj`.`lec_comments` (`lec_id`,`comment_date`,`comment_num`, "
+                            "`content`, `trans_content`) "
+                            "VALUES ('" + str(
+                                lec_id) + "', '" + dates[i] + "','" + str(
+                                i + 1) + "', '" + comment + "','" + text + "');")
+                        self.__db_cnx.commit()
+                    except mysql.connector.Error as err:
+                        print("problem - ", comment, text, err)
+                # print("comment" + str(i) + ":  " + comment + "\n")
         return comment_list
 
     def __get_lecturer(self, id_number):
@@ -98,7 +167,7 @@ class Process:
         end = self.__dargoo_source.find("</div>", start)
         names = self.__dargoo_source[start:end]
         size = names.count("<option value=")
-        for i in range(5):
+        for i in range(size):
             id_index = names.find("<option value=") + 14
             id_number = re.sub("[^0-9]", "", names[id_index:id_index + 3])
 
@@ -110,13 +179,14 @@ class Process:
 
             names = names[name_index:]
             name = names[0:names.find("</option")]
-            try:
-                self.__db_cnx.cursor().execute(
-                    "INSERT INTO `finalproj`.`institutes` (`ins_id`, `ins_name`) VALUES ('" + str(
-                        id_number) + "', '" + name + "');")
-                self.__db_cnx.commit()
-            except mysql.connector.Error as err:
-                print("problem-", err)
-            print(name)
-            details_dict[name + "_" + str(id_number)] = (self.__get_lecturer(id_number))
+            if int(id_number) == 22:  # only braude
+                try:
+                    self.__db_cnx.cursor().execute(
+                        "INSERT INTO `finalproj`.`institutes` (`ins_id`, `ins_name`) VALUES ('" + str(
+                            id_number) + "', '" + name + "');")
+                    self.__db_cnx.commit()
+                except mysql.connector.Error as err:
+                    print("problem-", err)
+                print(name)
+                details_dict[name + "_" + str(id_number)] = (self.__get_lecturer(id_number))
         return details_dict

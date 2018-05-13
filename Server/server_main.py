@@ -15,7 +15,7 @@ cnx = mysql.connector.connect(user='root', password='misha1991',
                               host='127.0.0.1',
                               database='finalproj')
 DBdata = cnx.cursor()
-pre_proc = pre_processing.Process(cnx)
+# pre_proc = pre_processing.Process(cnx)
 # pre_proc.get_details()
 
 
@@ -29,7 +29,7 @@ while True:
 
         # Receive the data in small chunks and retransmit it
         while True:
-            data = connection.recv(128)
+            data = connection.recv(2048)
             myData = [DBdata]
             myData = myData + (pickle.loads(data, encoding="ASCII"))
             # print(sys.stderr, 'received "%s"' % data)
@@ -37,7 +37,6 @@ while True:
             data_list = manager.switch_demo(myData)
             if data_list:
                 connection.sendall(data_list)
-
             # else:
             #     print(myData)
             #     print(sys.stderr, 'no more data from', client_address)

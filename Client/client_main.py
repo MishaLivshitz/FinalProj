@@ -11,16 +11,18 @@ sock.connect(server_address)
 
 try:
     # Send data
-    message = ['analyze_comments', 707]
+    message = ['analyze_comments', 5507]
     print(sys.stderr, 'sending "%s"' % message)
     message_to_send = pickle.dumps(message)
     sock.sendall(message_to_send)
 
     while True:
-        data = sock.recv(16384)
-        data_dict = dict(pickle.loads(data, encoding="ASCII"))
-        lec = Lecturer_Class.Lecturer(344, 'אבנון דן', data_dict)
-        lec.analyze_comments()
+        data = sock.recv(2048)
+        data_rec = float(pickle.loads(data, encoding="ASCII"))
+        # lec = Lecturer_Class.Lecturer(344, 'אבנון דן', data_rec)
+        # lec.analyze_comments()
+        if not None:
+            print("Lecturer rate -", data_rec)
 
 
 finally:

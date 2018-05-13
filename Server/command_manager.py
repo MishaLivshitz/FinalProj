@@ -1,4 +1,5 @@
 import pickle
+from Classes import Lecturer_Class
 
 
 class c_manager:
@@ -12,8 +13,12 @@ class c_manager:
         return pickle.dumps(args[0].fetchall())
 
     def __analyze_commments(self, args):
-        args[0].execute("SELECT comment_id,content FROM finalproj.comments WHERE lec_id=" + str(args[2]) + " ;")
-        return pickle.dumps(args[0].fetchall())
+        args[0].execute("SELECT lec_name FROM finalproj.lecturers WHERE lec_id=" + str(args[2]) + ";")
+        name = "".join(args[0].fetchone())
+        args[0].execute("SELECT comment_num,trans_content FROM finalproj.lec_comments WHERE lec_id=" + str(args[2]) + " ;")
+        lec = Lecturer_Class.Lecturer(str(args[2]), name, dict(args[0].fetchall()))
+        rate = lec.analyze_comments()
+        return pickle.dumps(rate)
 
     def switch_demo(self, argument):
         switcher = {
