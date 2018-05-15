@@ -1,8 +1,5 @@
 import socket
-import sys
-import pickle
-from Client.Controllers.conn_controller import conn_controller
-from Classes import Lecturer_Class
+from Controllers.conn_controller import conn_controller
 
 ##MAIN##
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
