@@ -88,10 +88,24 @@ class Process:
             return trans_com
         return ''
 
+    def __get_faculty(self, comment_response, lec_id):
+        index_start_faculty = comment_response.find('פקולטה/חוג:<span style="padding-left:10px;">')
+        index_start_faculty = comment_response.find('>', index_start_faculty)
+        index_end_faculty = comment_response.find('</span>', index_start_faculty)
+        faculty = comment_response[index_start_faculty + 1:index_end_faculty]
+        try:
+            self.__db_cnx.cursor().execute(
+                "UPDATE `finalproj`.`lecturers` SET `faculty`='" + faculty + "' WHERE `lec_id`='" + str(lec_id) + "';")
+            self.__db_cnx.commit()
+        except mysql.connector.Error as err:
+            print("problem - ", "__get_faculty", err)
+
+
     def __get_comments(self, lec_id):
         comment_list = []
         url2 = "http://dargoo.co.il/displayRanking.asp?lecturerID=" + str(lec_id)
         comment_response = self.__myencode(self.__get_source_code(url2).read())
+        self.__get_faculty(comment_response, lec_id)
         number_of_comments_in_page = int(
             (comment_response.count('<td style="white-space:normal;width:160px;padding:3px;">')))
         index_start_comment = comment_response.find('<td style="white-space:normal;width:160px;padding:3px;">')
@@ -105,7 +119,7 @@ class Process:
             cur_comment = comment_response[index_start_comment:index_end_comment].split("\\r\\n")
             index_start_comment = comment_response.find('<td style="white-space:normal;width:160px;padding:3px;">',
                                                         index_end_comment)
-            index_start_comment = comment_response.find(">",index_start_comment) + 1
+            index_start_comment = comment_response.find(">", index_start_comment) + 1
             comment = "".join(cur_comment)
             comment = comment.replace('\\t', '')
             comment = comment.strip()
@@ -123,7 +137,7 @@ class Process:
                                 i + 1) + "', '" + comment + "','" + text + "');")
                         self.__db_cnx.commit()
                     except mysql.connector.Error as err:
-                        print("problem - ", comment, text, err)
+                        print("problem - ", "__get_comments", err)
                 # print("comment" + str(i) + ":  " + comment + "\n")
         return comment_list
 
@@ -135,7 +149,7 @@ class Process:
         lec_size = int(re.sub("[^0-9]", "", lec_response[index_s:index_s + 30]))
         pages = math.ceil(lec_size / 20)  # 20 lecturers per page
 
-        for i in range(5):
+        for i in range(pages):
             index_lec = [lec.start() for lec in re.finditer('שם המרצה', lec_response)]  # get all indexes of 'שם המרצה'
             for each_lec in index_lec:
                 curr_source = lec_response[each_lec:]
@@ -152,7 +166,7 @@ class Process:
                             lec_id) + "', '" + str(id_number) + "', '" + lec_name + "');")
                     self.__db_cnx.commit()
                 except mysql.connector.Error as err:
-                    print("problem - ", err)
+                    print("problem - ", "__get_lecturer", err)
                 lec_key = lec_name + "_" + str(lec_id)
                 lec_dict[lec_key] = self.__get_comments(lec_id)
 
@@ -186,7 +200,7 @@ class Process:
                             id_number) + "', '" + name + "');")
                     self.__db_cnx.commit()
                 except mysql.connector.Error as err:
-                    print("problem-", err)
+                    print("problem-", "get_details", err)
                 print(name)
                 details_dict[name + "_" + str(id_number)] = (self.__get_lecturer(id_number))
         return details_dict
