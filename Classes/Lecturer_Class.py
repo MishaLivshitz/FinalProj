@@ -8,7 +8,6 @@ class Lecturer:
         self.num = num
         self.name = name
         self.comments = comments
-        print("size=", len(comments))
 
     def __get_source_code(self, url):
         request = urllib.request.Request(url)
