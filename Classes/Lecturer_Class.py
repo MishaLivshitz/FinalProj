@@ -36,9 +36,9 @@ class Lecturer:
     def analyze_comments(self):
         bad = 1
         good = 1
-        pos_post = 1
-        neg_post = 1
-        neu_post = 1
+        pos_post = 0
+        neg_post = 0
+        neu_post = 0
         bad_words = open("english_bad.txt", encoding="utf8").read().splitlines()
         good_word = open("english_good.txt", encoding="utf8").read().splitlines()
 
@@ -69,10 +69,12 @@ class Lecturer:
 
                 bad = 1
                 good = 1
-
-            print("rate = ", (pos_post / (pos_post + neg_post)) * 5)
-            print("rate = ", ((pos_post + neu_post / 2) / (pos_post + neg_post + neu_post)) * 5)
-            #return ((pos_post + neu_post / 2) / (pos_post + neg_post + neu_post)) * 5
-            return (pos_post / (pos_post + neg_post)) * 5
+            print("Pos=", pos_post)
+            print("Neg-", neg_post)
+            print("Neu-", neu_post)
+            #print("rate = ", (pos_post / (pos_post + neg_post)) * 5)
+            print("rate = ", ((pos_post + (neu_post / 2)) / (pos_post + neg_post + neu_post)) * 5)
+            return ((pos_post + neu_post / 2) / (pos_post + neg_post + neu_post)) * 5
+           # return (pos_post / (pos_post + neg_post)) * 5
         else:
             return -1

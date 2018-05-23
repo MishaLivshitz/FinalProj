@@ -29,7 +29,7 @@ while True:
 
         # Receive the data in small chunks and retransmit it
         while True:
-            data = connection.recv(128)
+            data = connection.recv(1024)
             myData = [DBdata]
             if data:
                 myData = myData + (pickle.loads(data, encoding="ASCII"))

@@ -100,7 +100,6 @@ class Process:
         except mysql.connector.Error as err:
             print("problem - ", "__get_faculty", err)
 
-
     def __get_comments(self, lec_id):
         comment_list = []
         url2 = "http://dargoo.co.il/displayRanking.asp?lecturerID=" + str(lec_id)
@@ -150,6 +149,10 @@ class Process:
         pages = math.ceil(lec_size / 20)  # 20 lecturers per page
 
         for i in range(pages):
+            if (i < 5):
+                page=page+1
+                lec_response = self.__get_page(page, id_number)
+                continue## just for last lec
             index_lec = [lec.start() for lec in re.finditer('שם המרצה', lec_response)]  # get all indexes of 'שם המרצה'
             for each_lec in index_lec:
                 curr_source = lec_response[each_lec:]
@@ -193,7 +196,7 @@ class Process:
 
             names = names[name_index:]
             name = names[0:names.find("</option")]
-            if int(id_number) == 22:  # only braude
+            if int(id_number) == 21:  # only afeka
                 try:
                     self.__db_cnx.cursor().execute(
                         "INSERT INTO `finalproj`.`institutes` (`ins_id`, `ins_name`) VALUES ('" + str(
