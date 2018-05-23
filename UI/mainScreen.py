@@ -10,10 +10,7 @@ import numpy
 import numpy as np
 from PyQt5 import QtCore, QtGui, QtWidgets
 import matplotlib.pyplot as plt
-from PyQt5.QtWidgets import QDialog
-from matplotlib.ticker import MaxNLocator
 import pandas as pd
-
 
 class Ui_MainWindow(object):
 
@@ -210,7 +207,7 @@ class Ui_MainWindow(object):
 
             # Use Y value as label and format number with one decimal place
 
-            label = str("{:.2f}".format(y_value)) + "\n#" + str(data_dict['comments_num'][0])
+            label = str("{:.2f}".format(y_value)) + "/5\n#" + str(data_dict['comments_num'][0])
             data_dict['comments_num'].pop(0)
             # Create annotation
             plt.annotate(

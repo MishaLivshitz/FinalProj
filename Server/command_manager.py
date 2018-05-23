@@ -100,37 +100,6 @@ class c_manager:
         return pickle.dumps(data_res)
 
     def __ins_comments_by_period(self, args):
-        rate_dict = {}
-        rates = []
-        comments_num = []
-        #
-        # args[0].execute("select distinct year(lec_comments.comment_date)"
-        #                 " from lec_comments,lecturers where"
-        #                 " lec_comments.lec_id=lecturers.lec_id And"
-        #                 " institute_id="+str(args[2])+" order by comment_date;")
-        # years = args[0].fetchall()
-        # args[0].execute("SELECT ins_name FROM finalproj.lecturers WHERE ins_id=" + str(args[2]) + ";")
-        # name = "".join(args[0].fetchone())
-        # lec = Lecturer_Class.Lecturer(str(args[2]), name, {})
-        #
-        # for i in range(len(years)):
-        #     years[i] = re.sub("[^0-9]", "", str(years[i]))
-        #     args[0].execute(
-        #         "SELECT comment_num,trans_content FROM finalproj.lec_comments where lec_id=" + str(
-        #             args[2]) + " and year(comment_date)=" + str(years[i]) + ";")
-        #     lec.comments = dict(args[0].fetchall())
-        #     print(len(lec.comments))
-        #     print(years[i])
-        #     rate = lec.analyze_comments()
-        #     if rate != -1:
-        #         years.append(years[i])
-        #         rates.append(round(rate, 2))
-        #         comments_num.append(len(lec.comments))
-        #
-        # rate_dict['years'] = years
-        # rate_dict['rates'] = rates
-        # rate_dict['comments_num'] = comments_num
-
         args[0].execute("select lecturers.lec_id from lecturers where institute_id=" + str(args[2]) + ";")
         lec_list = args[0].fetchall()
         data_dict_rate = {}
