@@ -5,6 +5,8 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from UI.mainScreen import Ui_MainWindow
 import sys
 
+from UI.table import table_ui
+
 
 class conn_controller:
 
@@ -19,6 +21,14 @@ class conn_controller:
         ui = Ui_MainWindow(self)
         ui.setupUi(MainWindow)
         MainWindow.show()
+        sys.exit(app.exec_())
+
+    def show_table_ui(self):
+        app = QtWidgets.QApplication(sys.argv)
+        Form = QtWidgets.QWidget()
+        ui = table_ui(self)
+        ui.setupUi(Form)
+        Form.show()
         sys.exit(app.exec_())
 
     def get_institutes(self):
@@ -52,6 +62,25 @@ class conn_controller:
             while True:
                 data = self.conn.recv(16384)
                 data_rec = dict(pickle.loads(data, encoding="ASCII"))
+                if data_rec is not None:
+                    return data_rec
+        finally:
+
+            print(sys.stderr, 'closing socket')
+            # self.conn.close()
+
+    def get_lecturers_table(self, ins_id):
+
+        try:
+            # Send data
+            message = ['get_lecturers_table', ins_id]
+            print(sys.stderr, 'sending "%s"' % message)
+            message_to_send = pickle.dumps(message)
+            self.conn.sendall(message_to_send)
+
+            while True:
+                data = self.conn.recv(65536)
+                data_rec = list(pickle.loads(data, encoding="ASCII"))
                 if data_rec is not None:
                     return data_rec
         finally:

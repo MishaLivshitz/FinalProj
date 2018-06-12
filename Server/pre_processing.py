@@ -149,10 +149,10 @@ class Process:
         pages = math.ceil(lec_size / 20)  # 20 lecturers per page
 
         for i in range(pages):
-            if (i < 5):
-                page=page+1
-                lec_response = self.__get_page(page, id_number)
-                continue## just for last lec
+            # if (i < 5):
+            #     page=page+1
+            #     lec_response = self.__get_page(page, id_number)
+            #     continue## just for last lec
             index_lec = [lec.start() for lec in re.finditer('שם המרצה', lec_response)]  # get all indexes of 'שם המרצה'
             for each_lec in index_lec:
                 curr_source = lec_response[each_lec:]
@@ -196,7 +196,7 @@ class Process:
 
             names = names[name_index:]
             name = names[0:names.find("</option")]
-            if int(id_number) == 21:  # only afeka
+            if int(id_number) == 43:  # only natania
                 try:
                     self.__db_cnx.cursor().execute(
                         "INSERT INTO `finalproj`.`institutes` (`ins_id`, `ins_name`) VALUES ('" + str(

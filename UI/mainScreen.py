@@ -10,7 +10,9 @@ import numpy
 import numpy as np
 from PyQt5 import QtCore, QtGui, QtWidgets
 import matplotlib.pyplot as plt
-import pandas as pd
+import sys
+from UI.table import table_ui
+
 
 class Ui_MainWindow(object):
 
@@ -18,6 +20,14 @@ class Ui_MainWindow(object):
         self.controller = controller
         self.ins_dict = {}
         self.lec_dict = {}
+
+    def open_table(self, lecturers,ins_name):
+        self.app = QtWidgets.QApplication(sys.argv)
+        self.Form = QtWidgets.QWidget()
+        self.ui = table_ui()
+        self.ui.setupUi(self.Form)
+        self.ui.set_data(lecturers,ins_name)
+        self.Form.show()
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -79,11 +89,15 @@ class Ui_MainWindow(object):
         self.by_ins_comboBox.currentIndexChanged.connect(self.by_ins_comboBox_on_change_listener)
         ##
         self.dep_btn = QtWidgets.QPushButton(self.ins_tab)
+        self.by_table_btn = QtWidgets.QPushButton(self.ins_tab)
+        self.by_table_btn.setObjectName("by_table_btn")
         self.dep_btn.setObjectName("dep_btn")
         ##
         self.dep_btn.clicked.connect(self.on_show_by_dep_clicked)
+        self.by_table_btn.clicked.connect(self.on_by_table_clicked)
         ##
         self.verticalLayout_3.addWidget(self.dep_btn, 0, QtCore.Qt.AlignHCenter)
+        self.verticalLayout_3.addWidget(self.by_table_btn, 0, QtCore.Qt.AlignHCenter)
         self.tabWidget.addTab(self.ins_tab, "")
         self.cmp_tab = QtWidgets.QWidget()
         self.cmp_tab.setObjectName("cmp_tab")
@@ -127,10 +141,12 @@ class Ui_MainWindow(object):
         self.histogram_btn.setText(_translate("MainWindow", "Show histogram"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.lec_tab), _translate("MainWindow", "By lecturer"))
         self.dep_btn.setText(_translate("MainWindow", "Get rank"))
+        self.by_table_btn.setText(_translate("MainWindow", "Get lecturers table"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.ins_tab), _translate("MainWindow", "By Institute"))
         self.cmp_btn.setText(_translate("MainWindow", "Compare"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.cmp_tab), _translate("MainWindow", "Compare institutes"))
         self.dep_btn.setVisible(0)
+        self.by_table_btn.setVisible(0)
         self.rate_btn.setVisible(0)
         self.histogram_btn.setVisible(0)
 
@@ -157,8 +173,10 @@ class Ui_MainWindow(object):
     def by_ins_comboBox_on_change_listener(self):
         if self.by_ins_comboBox.currentText() != "בחר מוסד לימודים...":
             self.dep_btn.setVisible(1)
+            self.by_table_btn.setVisible(1)
         else:
             self.dep_btn.setVisible(0)
+            self.by_table_btn.setVisible(0)
 
     def lec_combo_box_on_change_listener(self):
         self.histogram_btn.setVisible(0)
@@ -173,51 +191,58 @@ class Ui_MainWindow(object):
 
     def on_show_histogram_listener(self):
         data_dict = self.controller.get_histogram(self.lec_dict.get(self.lec_combo_box.currentText()))
-        frequencies = data_dict['rates']
-        freq_series = pd.Series.from_array(frequencies)
-        x_labels = data_dict['years']
 
-        # Plot the figure.
-        plt.figure(figsize=(12, 8))
-        ax = freq_series.plot(kind='bar')
-        ax.set_title(self.lec_combo_box.currentText()[::-1])
-        ax.set_xlabel('Years')
-        ax.set_ylabel('Rate')
-        ax.set_xticklabels(x_labels)
+        plt.plot(data_dict['years'], data_dict['rates'], color='red')
 
-        rects = ax.patches
-
-        # For each bar: Place a label
-        for rect in rects:
-            # Get X and Y placement of label from rect.
-            y_value = rect.get_height()
-            x_value = rect.get_x() + rect.get_width() / 2
-
-            # Number of points between bar and label. Change to your liking.
-            space = -30
-            # Vertical alignment for positive values
-            va = 'bottom'
-
-            # If value of bar is negative: Place label below bar
-            if y_value <= 0:
-                # Invert space to place label below
-                space *= -1
-                # Vertically align label at top
-                va = 'top'
-
-            # Use Y value as label and format number with one decimal place
-
-            label = str("{:.2f}".format(y_value)) + "/5\n#" + str(data_dict['comments_num'][0])
-            data_dict['comments_num'].pop(0)
-            # Create annotation
-            plt.annotate(
-                label,  # Use `label` as label
-                (x_value, y_value),  # Place label at end of the bar
-                xytext=(0, space),  # Vertically shift label by `space`
-                textcoords="offset points",  # Interpret `xytext` as offset in points
-                ha='center',  # Horizontally center label
-                va=va)  # Vertically align label differently for
+        plt.ylabel('Rate')
+        plt.xlabel('Year')
         plt.show()
+        # frequencies = data_dict['rates']
+        # freq_series = pd.Series.from_array(frequencies)
+        # x_labels = data_dict['years']
+        #
+        # # Plot the figure.
+        # plt.figure(figsize=(12, 8))
+        # ax = freq_series.plot(color='red')
+        # ax.set_title(self.lec_combo_box.currentText()[::-1])
+        # ax.set_xlabel('Years')
+        # ax.set_ylabel('Rate')
+        # ax.set_xticklabels(x_labels)
+        #
+        # rects = ax.patches
+        #
+        # # For each bar: Place a label
+        # for rect in rects:
+        #     # Get X and Y placement of label from rect.
+        #     y_value = rect.get_height()
+        #     x_value = rect.get_x() + rect.get_width() / 2
+        #
+        #     # Number of points between bar and label. Change to your liking.
+        #     space = -30
+        #     # Vertical alignment for positive values
+        #     va = 'bottom'
+        #
+        #     # If value of bar is negative: Place label below bar
+        #     if y_value <= 0:
+        #         # Invert space to place label below
+        #         space *= -1
+        #         # Vertically align label at top
+        #         va = 'top'
+        #
+        #     # Use Y value as label and format number with one decimal place
+        #
+        #     label = str("{:.2f}".format(y_value)) + "/5\n#" + str(data_dict['comments_num'][0])
+        #     data_dict['comments_num'].pop(0)
+        #     # Create annotation
+        #     plt.annotate(
+        #         label,  # Use `label` as label
+        #         (x_value, y_value),  # Place label at end of the bar
+        #         xytext=(0, space),  # Vertically shift label by `space`
+        #         textcoords="offset points",  # Interpret `xytext` as offset in points
+        #         ha='center',  # Horizontally center label
+        #         va=va
+        #     )  # Vertically align label differently for
+        # plt.show()
 
     def on_show_by_dep_clicked(self):
 
@@ -257,8 +282,11 @@ class Ui_MainWindow(object):
         data_rec_ins1 = self.controller.get_histogram_by_ins(self.ins_dict.get(self.cmp_ins_combo_box.currentText()))
         data_rec_ins2 = self.controller.get_histogram_by_ins(self.ins_dict.get(self.cmp_ins2_combo_box.currentText()))
 
+        list1 = sorted(data_rec_ins1);
+        list2 = sorted(data_rec_ins2);
+
         N = len(data_rec_ins1.keys())
-        ins1 = tuple(data_rec_ins1.values())
+        ins1 = tuple(data_rec_ins1[year] for year in list1)
 
         ind = np.arange(N)  # the x locations for the groups
         width = 0.35  # the width of the bars
@@ -267,16 +295,23 @@ class Ui_MainWindow(object):
         ax = fig.add_subplot(111)
         rects1 = ax.bar(ind, ins1, width, color='royalblue')
 
-        ins2 = tuple(data_rec_ins2.values())
+        ins2 = tuple(data_rec_ins2[year] for year in list2)
 
-        rects2 = ax.bar(ind + width, ins2, width, color='seagreen')
+        rects2 = ax.bar(ind + width, ins2, width, color='red')
 
         # add some
         ax.set_ylabel('Rate')
         ax.set_xticks(ind + width / 2)
-        ax.set_xticklabels(data_rec_ins1.keys())
+        if list1.__len__() > list2.__len__():
+            ax.set_xticklabels(list1)
+        else:
+            ax.set_xticklabels(list2)
 
         ax.legend((rects1[0], rects2[0]),
                   (self.cmp_ins_combo_box.currentText()[::-1], self.cmp_ins2_combo_box.currentText()[::-1]))
 
         plt.show()
+
+    def on_by_table_clicked(self):
+        lecturers = list(self.controller.get_lecturers_table(self.ins_dict.get(self.by_ins_comboBox.currentText())))
+        self.open_table(lecturers,self.by_ins_comboBox.currentText())

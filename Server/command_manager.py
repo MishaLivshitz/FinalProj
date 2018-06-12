@@ -14,6 +14,27 @@ class c_manager:
             args[2]) + " order by lec_name;")
         return pickle.dumps(args[0].fetchall())
 
+    def __get_all_lec_by_id(self, args):
+        lec_table = []
+        args[0].execute("SELECT lec_id,lec_name,faculty FROM finalproj.lecturers WHERE institute_id = " + str(
+            args[2]) + " order by lec_name;")
+        lecturers = args[0].fetchall()
+
+        for lec in lecturers:
+            lec_data = {}
+            curr_lec = Lecturer_Class.Lecturer(lec[0], lec[1], {})
+            lec_data["lecturer_name"] = lec[1]
+            lec_data["faculty"] = lec[2]
+            args[0].execute(
+                "SELECT comment_num,trans_content FROM finalproj.lec_comments where lec_id='" + str(lec[0]) + "';")
+            curr_lec.comments = dict(args[0].fetchall())
+            lec_data["rate"] = curr_lec.analyze_comments()
+            lec_data["num_of_comments"] = curr_lec.comments.__len__()
+            curr_lec.comments.clear()
+            lec_table.append(lec_data)
+            print(lec_table.__sizeof__())
+        return pickle.dumps(lec_table)
+
     def __get_all_ins(self, args):
         args[0].execute("SELECT ins_name,ins_id FROM finalproj.institutes;")
         return pickle.dumps(args[0].fetchall())
@@ -128,6 +149,7 @@ class c_manager:
     def switch_demo(self, argument):
         switcher = {
             "get_lecturers": self.__get_all_lec,
+            "get_lecturers_table": self.__get_all_lec_by_id,
             "get_institutes": self.__get_all_ins,
             "analyze_comments": self.__analyze_commments,
             "analyze_comments_by_period": self.__comments_by_period,
