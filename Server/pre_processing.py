@@ -196,14 +196,14 @@ class Process:
 
             names = names[name_index:]
             name = names[0:names.find("</option")]
-            if int(id_number) == 43:  # only natania
-                try:
-                    self.__db_cnx.cursor().execute(
-                        "INSERT INTO `finalproj`.`institutes` (`ins_id`, `ins_name`) VALUES ('" + str(
-                            id_number) + "', '" + name + "');")
-                    self.__db_cnx.commit()
-                except mysql.connector.Error as err:
-                    print("problem-", "get_details", err)
-                print(name)
-                details_dict[name + "_" + str(id_number)] = (self.__get_lecturer(id_number))
+
+            try:
+                self.__db_cnx.cursor().execute(
+                    "INSERT INTO `finalproj`.`institutes` (`ins_id`, `ins_name`) VALUES ('" + str(
+                        id_number) + "', '" + name + "');")
+                self.__db_cnx.commit()
+            except mysql.connector.Error as err:
+                print("problem-", "get_details", err)
+            print(name)
+            details_dict[name + "_" + str(id_number)] = (self.__get_lecturer(id_number))
         return details_dict

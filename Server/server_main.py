@@ -15,6 +15,8 @@ cnx = mysql.connector.connect(user='root', password='misha1991',
                               host='127.0.0.1',
                               database='finalproj')
 DBdata = cnx.cursor()
+
+##to Run pre process un comment the below
 # pre_proc = pre_processing.Process(cnx)
 # pre_proc.get_details()
 

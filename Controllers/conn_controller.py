@@ -41,7 +41,7 @@ class conn_controller:
             self.conn.sendall(message_to_send)
 
             while True:
-                data = self.conn.recv(128)
+                data = self.conn.recv(4096)
                 data_rec = dict(pickle.loads(data, encoding="ASCII"))
                 if data_rec is not None:
                     return data_rec
